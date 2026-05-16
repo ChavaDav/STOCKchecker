@@ -3,7 +3,7 @@
 # Script de prueba completa de la Stock Market API
 # ─────────────────────────────────────────────────────────────────────────────
 
-BASE_URL="http://localhost:3001/api"
+BASE_URL="${BASE_URL:-http://localhost:3001/api}"
 GREEN='\033[0;32m'
 RED='\033[0;31m'
 YELLOW='\033[1;33m'
@@ -21,7 +21,7 @@ test_endpoint() {
   local description=$5
   local auth_header=$6
 
-  local args="-s -w \n%{http_code}"
+  local args="-s -w '\\n%{http_code}'"
   args="$args -X $method"
   
   if [ -n "$auth_header" ]; then
@@ -67,8 +67,9 @@ echo ""
 echo -e "${YELLOW}▸ Autenticación - Registro${NC}"
 
 # Limpiar usuario de prueba anterior si existe
+RANDOM_ID=$RANDOM
 REGISTER_RESP=$(test_endpoint "POST" "$BASE_URL/auth/register" \
-  '{"username":"testuser","email":"test@test.com","password":"TestPass1!"}' \
+  "{\"username\":\"testuser_$RANDOM_ID\",\"email\":\"test_$RANDOM_ID@test.com\",\"password\":\"TestPass1!\"}" \
   "201" "Registrar nuevo usuario")
 
 # Validación de password débil
@@ -90,8 +91,8 @@ LOGIN_RESP=$(test_endpoint "POST" "$BASE_URL/auth/login" \
   '{"email":"test@test.com","password":"TestPass1!"}' \
   "200" "Login exitoso")
 
-TOKEN=$(echo "$LOGIN_RESP" | head -n -1 | python3 -c "import sys,json; print(json.load(sys.stdin)['accessToken'])" 2>/dev/null)
-REFRESH=$(echo "$LOGIN_RESP" | head -n -1 | python3 -c "import sys,json; print(json.load(sys.stdin)['refreshToken'])" 2>/dev/null)
+TOKEN=$(echo "$LOGIN_RESP" | python3 -c "import sys,json; print(json.load(sys.stdin).get('accessToken',''))" 2>/dev/null)
+REFRESH=$(echo "$LOGIN_RESP" | python3 -c "import sys,json; print(json.load(sys.stdin).get('refreshToken',''))" 2>/dev/null)
 
 # Login con credenciales incorrectas
 test_endpoint "POST" "$BASE_URL/auth/login" \

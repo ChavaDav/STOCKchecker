@@ -2,6 +2,9 @@ FROM node:20-slim
 
 WORKDIR /app
 
+# Install tools for testing
+RUN apt-get update && apt-get install -y curl python3 && rm -rf /var/lib/apt/lists/*
+
 # Instalar dependencias
 COPY package*.json ./
 RUN npm ci --only=production
@@ -17,4 +20,4 @@ USER node
 
 EXPOSE 3000
 
-CMD ["node", "src/server.js"]
+CMD ["sh", "start.sh"]

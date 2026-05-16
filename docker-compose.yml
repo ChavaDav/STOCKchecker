@@ -16,6 +16,12 @@ services:
     volumes:
       - api-data:/app/data
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
 
   stock-frontend:
     build:
@@ -24,8 +30,15 @@ services:
     ports:
       - "5173:80"
     depends_on:
-      - stock-api
+      stock-api:
+        condition: service_healthy
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "-", "http://localhost:80"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 5s
 
 volumes:
   api-data:
