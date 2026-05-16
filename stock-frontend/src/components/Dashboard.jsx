@@ -2,14 +2,17 @@ import { useState, useEffect } from 'react';
 import { fetchApi } from '../api';
 import { Search, TrendingUp, TrendingDown, LogOut, Star, Bell, Activity } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
+import { getLocalSuggestions } from '../utils/stockDictionary';
 
 export default function Dashboard({ token, user, onLogout }) {
   const [search, setSearch] = useState('');
   const [searchResults, setSearchResults] = useState([]);
+  const [suggestions, setSuggestions] = useState([]);
   const [favorites, setFavorites] = useState([]);
   const [selectedStock, setSelectedStock] = useState(null);
   const [stockHistory, setStockHistory] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
   useEffect(() => {
     loadFavorites();
@@ -24,16 +27,34 @@ export default function Dashboard({ token, user, onLogout }) {
     }
   };
 
+  const handleSearchChange = (e) => {
+    const val = e.target.value;
+    setSearch(val);
+    if (val.length > 0) {
+      setSuggestions(getLocalSuggestions(val));
+    } else {
+      setSuggestions([]);
+    }
+  };
+
+  const handleSuggestionClick = (symbol) => {
+    setSearch(symbol);
+    setSuggestions([]);
+    viewStock(symbol);
+  };
+
   const handleSearch = async (e) => {
     e.preventDefault();
     if (!search) return;
     
+    setSuggestions([]);
     setLoading(true);
+    setError('');
     try {
       const data = await fetchApi(`/stocks/search?q=${search}`);
       setSearchResults(data.results);
     } catch (err) {
-      console.error(err);
+      setError(err.message);
     } finally {
       setLoading(false);
     }
@@ -41,6 +62,8 @@ export default function Dashboard({ token, user, onLogout }) {
 
   const viewStock = async (symbol) => {
     setLoading(true);
+    setError('');
+    setSearchResults([]); // Limpiar resultados de búsqueda al seleccionar
     try {
       const quote = await fetchApi(`/stocks/${symbol}`);
       const history = await fetchApi(`/stocks/${symbol}/history?period=1mo&interval=1d`);
@@ -51,7 +74,7 @@ export default function Dashboard({ token, user, onLogout }) {
         price: d.close
       })));
     } catch (err) {
-      console.error(err);
+      setError(err.message);
     } finally {
       setLoading(false);
     }
@@ -93,19 +116,50 @@ export default function Dashboard({ token, user, onLogout }) {
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 3fr', gap: '2rem' }}>
         {/* Sidebar: Search & Favorites */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
-          <div className="glass-card" style={{ padding: '1.5rem' }}>
+          <div className="glass-card" style={{ padding: '1.5rem', position: 'relative' }}>
             <h3 className="mb-4">Search Stocks</h3>
             <form onSubmit={handleSearch} className="flex gap-2 mb-4">
               <input 
                 type="text" 
                 placeholder="AAPL, MSFT..." 
                 value={search}
-                onChange={e => setSearch(e.target.value)}
+                onChange={handleSearchChange}
               />
               <button type="submit" className="btn" style={{ padding: '0.75rem' }}>
                 <Search size={18} />
               </button>
             </form>
+
+            {suggestions.length > 0 && (
+              <div 
+                className="glass-card" 
+                style={{ 
+                  position: 'absolute', top: '5.5rem', left: '1.5rem', right: '1.5rem', 
+                  zIndex: 10, padding: '0.5rem', display: 'flex', flexDirection: 'column', gap: '0.25rem' 
+                }}
+              >
+                {suggestions.map(s => (
+                  <div 
+                    key={s.symbol}
+                    onClick={() => handleSuggestionClick(s.symbol)}
+                    style={{ 
+                      padding: '0.5rem 0.75rem', cursor: 'pointer', borderRadius: '4px',
+                      background: 'rgba(255,255,255,0.02)', transition: 'background 0.2s'
+                    }}
+                    onMouseOver={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.1)'}
+                    onMouseOut={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.02)'}
+                  >
+                    <strong>{s.symbol}</strong> <span className="text-muted" style={{ fontSize: '0.85rem' }}>- {s.name}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {error && (
+              <div className="glass-card mb-4" style={{ padding: '0.75rem', color: 'var(--danger)', borderLeft: '4px solid var(--danger)', fontSize: '0.9rem' }}>
+                {error}
+              </div>
+            )}
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
               {searchResults.map(res => (

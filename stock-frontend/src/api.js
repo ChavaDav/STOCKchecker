@@ -20,7 +20,11 @@ export const fetchApi = async (endpoint, options = {}) => {
   const data = await response.json();
 
   if (!response.ok) {
-    throw new Error(data.message || data.error || 'Something went wrong');
+    let errorMessage = data.message || data.error || 'Something went wrong';
+    if (data.details && Array.isArray(data.details)) {
+      errorMessage += ': ' + data.details.map(d => d.message).join('. ');
+    }
+    throw new Error(errorMessage);
   }
 
   return data;

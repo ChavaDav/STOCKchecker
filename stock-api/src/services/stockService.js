@@ -121,6 +121,7 @@ class StockService {
       setCache(cacheKey, results, 5 * 60 * 1000); // Cache 5 min para búsquedas
       return results;
     } catch (err) {
+      if (err.name === 'YahooApiError') throw err;
       logger.error('Error buscando acciones:', { query, error: err.message });
       throw new Error('Error al buscar acciones. Intenta de nuevo.');
     }
@@ -210,6 +211,7 @@ class StockService {
       setCache(cacheKey, result);
       return result;
     } catch (err) {
+      if (err.name === 'YahooApiError') throw err;
       if (err.message.includes('No se encontró')) throw err;
       logger.error('Error obteniendo cotización:', {
         symbol,
@@ -275,6 +277,7 @@ class StockService {
       setCache(cacheKey, result, 2 * 60 * 1000); // Cache 2 min para historial
       return result;
     } catch (err) {
+      if (err.name === 'YahooApiError') throw err;
       logger.error('Error obteniendo historial:', {
         symbol,
         error: err.message,
