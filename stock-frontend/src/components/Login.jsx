@@ -1,12 +1,14 @@
 import { useState } from 'react';
 import { fetchApi } from '../api';
-import { TrendingUp, Lock, Mail, User } from 'lucide-react';
+import { TrendingUp, Lock, Mail, User, Sun, Moon } from 'lucide-react';
+import { useTheme } from '../ThemeContext';
 
 export default function Login({ onLogin }) {
   const [isRegister, setIsRegister] = useState(false);
   const [formData, setFormData] = useState({ username: '', email: '', password: '' });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const { isDark, toggleTheme } = useTheme();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -32,7 +34,15 @@ export default function Login({ onLogin }) {
 
   return (
     <div className="container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh' }}>
-      <div className="glass-card animate-fade-in" style={{ width: '100%', maxWidth: '400px', padding: '2rem' }}>
+      <div className="glass-card animate-fade-in" style={{ width: '100%', maxWidth: '400px', padding: '2rem', position: 'relative' }}>
+        <button 
+          className="btn-icon" 
+          onClick={toggleTheme} 
+          style={{ position: 'absolute', top: '1rem', right: '1rem' }}
+          title="Toggle Theme"
+        >
+          {isDark ? <Sun size={18} /> : <Moon size={18} />}
+        </button>
         <div className="flex items-center justify-center gap-2 mb-6">
           <div style={{ background: 'var(--primary)', padding: '10px', borderRadius: '12px' }}>
             <TrendingUp size={28} color="white" />

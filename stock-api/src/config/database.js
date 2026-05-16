@@ -32,6 +32,7 @@ function initializeDatabase() {
       username TEXT NOT NULL UNIQUE COLLATE NOCASE,
       email TEXT NOT NULL UNIQUE COLLATE NOCASE,
       password_hash TEXT NOT NULL,
+      theme TEXT DEFAULT 'dark',
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       is_active INTEGER DEFAULT 1,
@@ -39,6 +40,24 @@ function initializeDatabase() {
       locked_until DATETIME DEFAULT NULL
     );
 
+    -- Migración para añadir theme si la base de datos ya existía
+    BEGIN TRANSACTION;
+    SELECT * FROM users LIMIT 1;
+    COMMIT;
+  `);
+
+  try {
+    const tableInfo = db.prepare("PRAGMA table_info(users)").all();
+    const hasTheme = tableInfo.some(column => column.name === 'theme');
+    if (!hasTheme) {
+      db.prepare("ALTER TABLE users ADD COLUMN theme TEXT DEFAULT 'dark'").run();
+      logger.info('Migración: Columna theme añadida a la tabla users');
+    }
+  } catch (err) {
+    logger.error('Error en migración de theme:', err);
+  }
+
+  db.exec(`
     -- Índices para usuarios
     CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
     CREATE INDEX IF NOT EXISTS idx_users_username ON users(username);

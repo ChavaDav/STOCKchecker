@@ -43,7 +43,7 @@ class User {
    */
   static findById(id) {
     return db.prepare(`
-      SELECT id, username, email, created_at, updated_at, is_active
+      SELECT id, username, email, theme, created_at, updated_at, is_active
       FROM users WHERE id = ?
     `).get(id);
   }
@@ -145,6 +145,7 @@ class User {
       id: user.id,
       username: user.username,
       email: user.email,
+      theme: user.theme,
       created_at: user.created_at,
     };
   }
@@ -152,7 +153,7 @@ class User {
   /**
    * Actualizar perfil de usuario
    */
-  static update(id, { username, email }) {
+  static update(id, { username, email, theme }) {
     const updates = [];
     const values = [];
 
@@ -163,6 +164,10 @@ class User {
     if (email) {
       updates.push('email = ?');
       values.push(email.toLowerCase());
+    }
+    if (theme) {
+      updates.push('theme = ?');
+      values.push(theme);
     }
 
     if (updates.length === 0) return this.findById(id);

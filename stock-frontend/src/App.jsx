@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
 import Login from './components/Login';
 import Dashboard from './components/Dashboard';
+import { useTheme } from './ThemeContext';
 
 function App() {
   const [token, setToken] = useState(localStorage.getItem('token'));
   const [user, setUser] = useState(null);
+  const { setThemeFromServer } = useTheme();
 
   useEffect(() => {
     if (token) {
@@ -16,7 +18,12 @@ function App() {
         if (!res.ok) throw new Error('Invalid token');
         return res.json();
       })
-      .then(data => setUser(data.user))
+      .then(data => {
+        setUser(data.user);
+        if (data.user && data.user.theme) {
+          setThemeFromServer(data.user.theme);
+        }
+      })
       .catch(() => {
         localStorage.removeItem('token');
         setToken(null);

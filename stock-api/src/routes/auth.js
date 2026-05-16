@@ -179,10 +179,10 @@ router.get('/me', authenticate, (req, res) => {
  */
 router.put('/me', authenticate, updateProfileValidation, (req, res, next) => {
   try {
-    const { username, email } = req.body;
-    const user = User.update(req.user.id, { username, email });
+    const { username, email, theme } = req.body;
+    const user = User.update(req.user.id, { username, email, theme });
 
-    auditLog(req.user.id, 'PROFILE_UPDATE', { username, email }, req.ip);
+    auditLog(req.user.id, 'PROFILE_UPDATE', { username, email, theme }, req.ip);
 
     res.json({
       message: 'Perfil actualizado',

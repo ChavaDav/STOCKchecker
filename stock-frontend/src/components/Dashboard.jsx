@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
 import { fetchApi } from '../api';
-import { Search, TrendingUp, TrendingDown, LogOut, Star, Bell, Activity } from 'lucide-react';
+import { Search, TrendingUp, TrendingDown, LogOut, Star, Bell, Activity, Sun, Moon } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { getLocalSuggestions } from '../utils/stockDictionary';
+import { useTheme } from '../ThemeContext';
 
 export default function Dashboard({ token, user, onLogout }) {
+  const { isDark, toggleTheme } = useTheme();
   const [search, setSearch] = useState('');
   const [searchResults, setSearchResults] = useState([]);
   const [suggestions, setSuggestions] = useState([]);
@@ -106,8 +108,11 @@ export default function Dashboard({ token, user, onLogout }) {
           <h2 className="gradient-text" style={{ fontSize: '1.5rem', margin: 0 }}>StockSense</h2>
         </div>
         <div className="flex items-center gap-4">
-          <span className="text-muted">Hello, <strong style={{ color: 'white' }}>{user?.username}</strong></span>
-          <button className="btn-icon" onClick={onLogout} title="Logout">
+          <span className="text-muted">Hello, <strong style={{ color: 'var(--text-main)' }}>{user?.username}</strong></span>
+          <button className="btn-icon" onClick={toggleTheme} title="Toggle Theme">
+            {isDark ? <Sun size={18} /> : <Moon size={18} />}
+          </button>
+          <button className="btn-icon" onClick={onLogout} title="Logout" style={{ background: 'var(--danger)', color: 'white', border: 'none' }}>
             <LogOut size={18} />
           </button>
         </div>
@@ -144,10 +149,10 @@ export default function Dashboard({ token, user, onLogout }) {
                     onClick={() => handleSuggestionClick(s.symbol)}
                     style={{ 
                       padding: '0.5rem 0.75rem', cursor: 'pointer', borderRadius: '4px',
-                      background: 'rgba(255,255,255,0.02)', transition: 'background 0.2s'
+                      background: 'var(--bg-input)', transition: 'background 0.2s'
                     }}
-                    onMouseOver={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.1)'}
-                    onMouseOut={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.02)'}
+                    onMouseOver={(e) => e.currentTarget.style.background = 'var(--border)'}
+                    onMouseOut={(e) => e.currentTarget.style.background = 'var(--bg-input)'}
                   >
                     <strong>{s.symbol}</strong> <span className="text-muted" style={{ fontSize: '0.85rem' }}>- {s.name}</span>
                   </div>
@@ -166,7 +171,7 @@ export default function Dashboard({ token, user, onLogout }) {
                 <div 
                   key={res.symbol} 
                   className="glass-card flex justify-between items-center" 
-                  style={{ padding: '0.75rem', cursor: 'pointer', background: 'rgba(255,255,255,0.02)' }}
+                  style={{ padding: '0.75rem', cursor: 'pointer', background: 'var(--bg-input)' }}
                   onClick={() => viewStock(res.symbol)}
                 >
                   <div>
